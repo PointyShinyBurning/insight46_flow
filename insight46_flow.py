@@ -1,7 +1,9 @@
 from airflow import DAG
-from cpgintegrate.connectors import OpenClinica
+from cpgintegrate.connectors import OpenClinica, XNAT
 from cpgintegrate.airflow.dag_maker import dataset_list_to_ckan
 from datetime import datetime
+# from cpgintegrate.airflow.cpg_airflow_plugin import CPGDatasetToXCom, XComDatasetToCkan
+from airflow.operators.cpg_plugin import CPGDatasetToXCom, XComDatasetToCkan
 
 default_args = {
     'owner': 'airflow',
@@ -33,3 +35,6 @@ dataset_list_to_ckan(insight, OpenClinica, 'insight46_openclinica', 'ckan', 'ins
                          'F_VALVEDISORDE',
                          'F_VICORDERFILE'
                      ])
+with insight as dag:
+    CPGDatasetToXCom(task_id='XNAT_SESSIONS', connector_class=XNAT, connection_id="insight46_xnat")\
+        >> XComDatasetToCkan(task_id='XNAT_SESSIONS_push_to_ckan', ckan_connection_id='ckan', ckan_package_id='insight46_admin')
