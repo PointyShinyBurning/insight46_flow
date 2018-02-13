@@ -4,13 +4,15 @@ from datetime import datetime
 # from cpgintegrate.airflow.cpg_airflow_plugin import CPGDatasetToXCom, XComDatasetToCkan
 from airflow.operators.cpg_plugin import CPGDatasetToXCom, XComDatasetToCkan, CPGDatasetListToCkan
 
+START_DATE = datetime(2018, 2, 11)
+
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
     'email': ['d.key@ucl.ac.uk'],
     'email_on_failure': True,
     'email_on_retry': True,
-    'start_date': datetime(2018, 2, 11),
+    'start_date': START_DATE,
     'schedule_interval': '1 0 * * *',
 }
 
@@ -36,7 +38,7 @@ with insight as dag:
                              'F_URINECOLLECT',
                              'F_VALVEDISORDE',
                              'F_VICORDERFILE'
-                         ], **default_args)
+                         ], start_date=START_DATE)
 
     CPGDatasetToXCom(task_id='XNAT_SESSIONS', connector_class=XNAT, connection_id="insight46_xnat") >> \
         XComDatasetToCkan(task_id='XNAT_SESSIONS_push_to_ckan', ckan_connection_id='ckan',
