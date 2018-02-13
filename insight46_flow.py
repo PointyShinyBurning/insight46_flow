@@ -15,10 +15,9 @@ default_args = {
     'email_on_failure': True,
     'email_on_retry': True,
     'start_date': START_DATE,
-    'schedule_interval': '1 0 * * *',
 }
 
-insight = DAG('insight46_flow', default_args=default_args)
+insight = DAG('insight46_flow', default_args=default_args, schedule_interval='1 0 * * *')
 with insight as dag:
     SubDagOperator(task_id="AllOpenClinica",
                    subdag=dataset_list_subdag(
