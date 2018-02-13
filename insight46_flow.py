@@ -21,7 +21,7 @@ default_args = {
 insight = DAG('insight46_flow', default_args=default_args)
 with insight as dag:
     SubDagOperator(task_id="AllOpenClinica",
-                   subgdag=dataset_list_subdag(
+                   subdag=dataset_list_subdag(
                        dag_id="insight46_flow.AllOpenClinica", connector_class=OpenClinica,
                          connection_id='insight46_openclinica',
                          ckan_connection_id='ckan', ckan_package_id='insight46_admin', pool='openclinica',
