@@ -1,8 +1,10 @@
 from airflow import DAG
 from cpgintegrate.connectors import OpenClinica, XNAT
+from cpgintegrate.airflow import dataset_list_subdag
 from datetime import datetime
 # from cpgintegrate.airflow.cpg_airflow_plugin import CPGDatasetToXCom, XComDatasetToCkan
-from airflow.operators.cpg_plugin import CPGDatasetToXCom, XComDatasetToCkan, CPGDatasetListToCkan
+from airflow.operators.cpg_plugin import CPGDatasetToXCom, XComDatasetToCkan
+from airflow.operators.subdag_operator import SubDagOperator
 
 START_DATE = datetime(2018, 2, 11)
 
@@ -18,7 +20,9 @@ default_args = {
 
 insight = DAG('insight46_flow', default_args=default_args)
 with insight as dag:
-    CPGDatasetListToCkan(dag_id="insight46_flow.AllOpenClinica", task_id="AllOpenClinica", connector_class=OpenClinica,
+    SubDagOperator(task_id="AllOpenClinica",
+                   subgdag=dataset_list_subdag(
+                       dag_id="insight46_flow.AllOpenClinica", connector_class=OpenClinica,
                          connection_id='insight46_openclinica',
                          ckan_connection_id='ckan', ckan_package_id='insight46_admin', pool='openclinica',
                          dataset_list=[
@@ -38,7 +42,7 @@ with insight as dag:
                              'F_URINECOLLECT',
                              'F_VALVEDISORDE',
                              'F_VICORDERFILE'
-                         ], start_date=START_DATE)
+                         ], start_date=START_DATE))
 
     CPGDatasetToXCom(task_id='XNAT_SESSIONS', connector_class=XNAT, connection_id="insight46_xnat") >> \
         XComDatasetToCkan(task_id='XNAT_SESSIONS_push_to_ckan', ckan_connection_id='ckan',
