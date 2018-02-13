@@ -16,7 +16,7 @@ default_args = {
 
 insight = DAG('insight46_flow', default_args=default_args)
 with insight as dag:
-    CPGDatasetListToCkan(dag_id="insight46_flow.ALL_OC_CRFS", task_id="AllOpenClinica", connector_class=OpenClinica,
+    CPGDatasetListToCkan(dag_id="insight46_flow.AllOpenClinica", task_id="AllOpenClinica", connector_class=OpenClinica,
                          connection_id='insight46_openclinica',
                          ckan_connection_id='ckan', ckan_package_id='insight46_admin', pool='openclinica',
                          dataset_list=[
