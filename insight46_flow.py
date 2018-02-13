@@ -1,6 +1,5 @@
 from airflow import DAG
 from cpgintegrate.connectors import OpenClinica, XNAT
-from cpgintegrate.airflow.dag_maker import dataset_list_to_ckan
 from datetime import datetime
 # from cpgintegrate.airflow.cpg_airflow_plugin import CPGDatasetToXCom, XComDatasetToCkan
 from airflow.operators.cpg_plugin import CPGDatasetToXCom, XComDatasetToCkan, CPGDatasetListToCkan
