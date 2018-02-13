@@ -10,10 +10,11 @@ default_args = {
     'email': ['d.key@ucl.ac.uk'],
     'email_on_failure': True,
     'email_on_retry': True,
+    'start_date': datetime(2018, 2, 11),
+    'schedule_interval': '1 0 * * *',
 }
 
-insight = DAG('insight46_flow', start_date=datetime(2018, 2, 11), schedule_interval='1 0 * * *',
-              default_args=default_args)
+insight = DAG('insight46_flow', default_args=default_args)
 with insight as dag:
     CPGDatasetListToCkan(dag_id="insight46_flow.ALL_OC_CRFS", task_id="AllOpenClinica", connector_class=OpenClinica,
                          connection_id='insight46_openclinica',
@@ -35,7 +36,7 @@ with insight as dag:
                              'F_URINECOLLECT',
                              'F_VALVEDISORDE',
                              'F_VICORDERFILE'
-                         ])
+                         ], **default_args)
 
     CPGDatasetToXCom(task_id='XNAT_SESSIONS', connector_class=XNAT, connection_id="insight46_xnat") >> \
         XComDatasetToCkan(task_id='XNAT_SESSIONS_push_to_ckan', ckan_connection_id='ckan',
