@@ -1,4 +1,5 @@
 from airflow import DAG
+from airflow.operators.dummy_operator import DummyOperator
 from cpgintegrate.connectors import OpenClinica, XNAT
 from datetime import datetime
 # from cpgintegrate.airflow.cpg_airflow_plugin import CPGDatasetToXCom, XComDatasetToCkan
@@ -20,7 +21,8 @@ default_args = {
 
 insight = DAG('insight46_flow', default_args=default_args, schedule_interval='1 0 * * *')
 with insight as dag:
-    SubDagOperator(task_id="AllOpenClinica",
+    dummy = DummyOperator(task_id="starter")
+    dummy >> SubDagOperator(task_id="AllOpenClinica",
                    subdag=dataset_list_subdag(
                        dag_id="insight46_flow.AllOpenClinica", connector_class=OpenClinica,
                          connection_id='insight46_openclinica',
@@ -44,6 +46,6 @@ with insight as dag:
                              'F_VICORDERFILE'
                          ], start_date=START_DATE))
 
-    CPGDatasetToXCom(task_id='XNAT_SESSIONS', connector_class=XNAT, connection_id="insight46_xnat") >> \
+    dummy >> CPGDatasetToXCom(task_id='XNAT_SESSIONS', connector_class=XNAT, connection_id="insight46_xnat") >> \
         XComDatasetToCkan(task_id='XNAT_SESSIONS_push_to_ckan', ckan_connection_id='ckan',
                           ckan_package_id='insight46_admin')
