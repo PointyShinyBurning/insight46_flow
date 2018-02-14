@@ -19,7 +19,7 @@ default_args = {
 }
 
 
-insight = DAG('insight46_flow', default_args=default_args, schedule_interval='1 0 * * *')
+insight = DAG('insight46_flow', default_args=default_args, schedule_interval='0 21 * * *')
 with insight as dag:
     dummy = DummyOperator(task_id="starter")
     dummy >> SubDagOperator(task_id="AllOpenClinica",
