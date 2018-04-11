@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
-from cpgintegrate.connectors import OpenClinica, XNAT
+from cpgintegrate.connectors.openclinica import OpenClinica
+from cpgintegrate.connectors.xnat import XNAT
 from datetime import datetime
 # from cpgintegrate.airflow.cpg_airflow_plugin import CPGDatasetToXCom, XComDatasetToCkan
 from airflow.operators.cpg_plugin import CPGDatasetToXCom, XComDatasetToCkan
