@@ -23,11 +23,11 @@ default_args = {
 insight = DAG('insight46_flow', default_args=default_args, schedule_interval='0 21 * * *')
 with insight as dag:
     dummy = DummyOperator(task_id="starter")
-    dummy >> SubDagOperator(task_id="AllOpenClinica",
+    dummy >> SubDagOperator(task_id="AllOpenClinica", pool='openclinica',
                    subdag=dataset_list_subdag(
                        dag_id="insight46_flow.AllOpenClinica", connector_class=OpenClinica,
                          connection_id='insight46_openclinica',
-                         ckan_connection_id='ckan', ckan_package_id='insight46_admin', pool='openclinica',
+                         ckan_connection_id='ckan', ckan_package_id='insight46_admin',
                          dataset_list=[
                              'F_3DECHOANALYS',
                              'F_CIMTDONE',
