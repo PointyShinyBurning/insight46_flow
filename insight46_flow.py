@@ -23,10 +23,10 @@ default_args = {
 insight = DAG('insight46_flow', default_args=default_args, schedule_interval='0 21 * * *')
 with insight as dag:
     dummy = DummyOperator(task_id="starter")
-    dummy >> SubDagOperator(task_id="AllOpenClinica", pool='openclinica',
-                   subdag=dataset_list_subdag(
+    dummy >> SubDagOperator(task_id="AllOpenClinica",
+                   subdag=dataset_list_subdag(connector_kwargs={'schema': 'S_INSIGHT4'}, pool='openclinica',
                        dag_id="insight46_flow.AllOpenClinica", connector_class=OpenClinica,
-                         connection_id='insight46_openclinica',
+                         connection_id='openclinica',
                          ckan_connection_id='ckan', ckan_package_id='insight46_admin',
                          dataset_list=[
                              'F_3DECHOANALYS',
@@ -47,6 +47,7 @@ with insight as dag:
                              'F_VICORDERFILE'
                          ], start_date=START_DATE))
 
-    dummy >> CPGDatasetToXCom(task_id='XNAT_SESSIONS', connector_class=XNAT, connection_id="insight46_xnat") >> \
+    dummy >> CPGDatasetToXCom(task_id='XNAT_SESSIONS', connector_class=XNAT, connection_id="xnat",
+                              connector_kwargs={'schema': 'INSIGHT46_2'}) >> \
         XComDatasetToCkan(task_id='XNAT_SESSIONS_push_to_ckan', ckan_connection_id='ckan',
                           ckan_package_id='insight46_admin')
