@@ -1,19 +1,21 @@
-from airflow import DAG
-from airflow.operators.dummy_operator import DummyOperator
-from cpgintegrate.connectors.openclinica import OpenClinica
-from cpgintegrate.connectors.xnat import XNAT
 from datetime import datetime
+
+from airflow import DAG
+from airflow.models import Variable
 # from cpgintegrate.airflow.cpg_airflow_plugin import CPGDatasetToXCom, XComDatasetToCkan
 from airflow.operators.cpg_plugin import CPGDatasetToXCom, XComDatasetToCkan
+from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.subdag_operator import SubDagOperator
 from cpgintegrate.airflow.subdags import dataset_list_subdag
+from cpgintegrate.connectors.openclinica import OpenClinica
+from cpgintegrate.connectors.xnat import XNAT
 
 START_DATE = datetime(2018, 2, 11)
 
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'email': ['d.key@ucl.ac.uk'],
+    'email': [Variable.get('alert_email', None)],
     'email_on_failure': True,
     'email_on_retry': True,
     'start_date': START_DATE,
@@ -22,8 +24,9 @@ default_args = {
 
 insight = DAG('insight46_flow', default_args=default_args, schedule_interval='0 21 * * *')
 with insight as dag:
-    dummy = DummyOperator(task_id="starter")
-    dummy >> SubDagOperator(task_id="AllOpenClinica",
+    oc_args = {'connector_class': OpenClinica, 'connection_id': 'openclinica', 'pool': 'openclinica',
+               'connector_kwargs': {'schema': 'S_INSIGHT4'}}
+    DummyOperator(task_id="starter") >> [SubDagOperator(task_id="AllOpenClinica",
                    subdag=dataset_list_subdag(connector_kwargs={'schema': 'S_INSIGHT4'}, pool='openclinica',
                        dag_id="insight46_flow.AllOpenClinica", connector_class=OpenClinica,
                          connection_id='openclinica',
@@ -45,9 +48,16 @@ with insight as dag:
                              'F_URINECOLLECT',
                              'F_VALVEDISORDE',
                              'F_VICORDERFILE'
-                         ], start_date=START_DATE))
+                         ], start_date=START_DATE)), (
+            XComDatasetToCkan(task_id='XNAT_SESSIONS_push_to_ckan', ckan_connection_id='ckan',
+                              ckan_package_id='insight46_admin') <<
+            CPGDatasetToXCom(task_id='XNAT_SESSIONS', connector_class=XNAT, connection_id="xnat",
+                             connector_kwargs={'schema': 'INSIGHT46_2'})
 
-    dummy >> CPGDatasetToXCom(task_id='XNAT_SESSIONS', connector_class=XNAT, connection_id="xnat",
-                              connector_kwargs={'schema': 'INSIGHT46_2'}) >> \
-        XComDatasetToCkan(task_id='XNAT_SESSIONS_push_to_ckan', ckan_connection_id='ckan',
-                          ckan_package_id='insight46_admin')
+    ),(
+             XComDatasetToCkan(task_id='Spoons_push_to_ckan',
+                               ckan_connection_id='ckan',
+                               ckan_package_id='insight46_iom') <<
+             CPGDatasetToXCom(task_id='Spoons', **oc_args, dataset_args=['F_SPOONS'])
+    ),
+    ]
